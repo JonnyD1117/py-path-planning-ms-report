@@ -1,23 +1,25 @@
 #!/usr/bin/env python3
-from ros2_path_planning_interfaces.srv import DummySrv
+from ros2_path_planning_interfaces.srv import PathPlanner
 
 import sys
 import rclpy
 from rclpy.node import Node
 
 
-class MinimalClientAsync(Node):
+class AsyncPathPlannerClient(Node):
 
     def __init__(self):
         super().__init__('minimal_client_async')
-        self.cli = self.create_client(DummySrv, 'add_two_ints')
+
+        self.cli = self.create_client(PathPlanner, 'path_planner_service')
+
         while not self.cli.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('service not available, waiting again...')
-        self.req = DummySrv.Request()
+            
+        self.req = PathPlanner.Request()
 
-    def send_request(self, a, b):
-        self.req.a = a
-        self.req.b = b
+    def send_request(self, my_path="www.google.com"):
+        self.req.map_path = my_path
         self.future = self.cli.call_async(self.req)
         rclpy.spin_until_future_complete(self, self.future)
         return self.future.result()
@@ -26,11 +28,9 @@ class MinimalClientAsync(Node):
 def main():
     rclpy.init()
 
-    minimal_client = MinimalClientAsync()
-    response = minimal_client.send_request(int(sys.argv[1]), int(sys.argv[2]))
-    minimal_client.get_logger().info(
-        'Result of add_two_ints: for %d + %d = %d' %
-        (int(sys.argv[1]), int(sys.argv[2]), response.sum))
+    minimal_client = AsyncPathPlannerClient()
+    response = minimal_client.send_request()
+    minimal_client.get_logger().info(f"Result {response.path_json_path}")
 
     minimal_client.destroy_node()
     rclpy.shutdown()
