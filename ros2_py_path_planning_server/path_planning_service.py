@@ -13,8 +13,6 @@ from rclpy.node import Node
 
 class PathPlannerService(Node):
 
-    planner_mapping = {}
-
     def __init__(self):
         super().__init__('path_planning_service')
         self.srv = self.create_service(PathPlanner, 'path_planner_service', self.compute_path)
@@ -23,9 +21,9 @@ class PathPlannerService(Node):
     
     def compute_path(self, request, response):
         # Parse Input Parameters
-        map_path = request.map_path
+        #self._map_path = request.map_path
         # json_path = request.json_path
-        # planner_type = request.planner
+        # self.planner_type = request.planner
         # start = (request.start_x, request.start_y)
         # goal = (request.goal_x, request.goal_y)
 
@@ -44,56 +42,59 @@ class PathPlannerService(Node):
         # Parse Output Parameters
         response.path_json_path = "www.amazon.com"
         output_path = response.path_json_path
-        self._logger.info(f"Map Exists at: {map_path}, & Output Exists at:{output_path}")
+        self._logger.info(f"Map Exists at: {self.map_path}, & Output Exists at:{output_path}")
         return response
 
     def _solve_astar(self, map_path="src/ros2_py_path_planning_server/maps/map.pgm", start=(215, 230), goal=(150, 170)):
-        
-        def _build_graph(map_path):
-            """Generate graph from grip map."""
-            graph_gen = GridMapGraphGenerator(inflate=True, connected_8=False)
-            return graph_gen.build_graph(map_path)
 
-        def _build_json(raw_wpts, smooth_wpts, planner, path):
-            """Generate the output JSON object and save to a JSON file."""
+        # def _build_graph(map_path):
+        #     """Generate graph from grip map."""
+        #     graph_gen = GridMapGraphGenerator(inflate=True, connected_8=False)
+        #     return graph_gen.build_graph(map_path)
 
-            dt_str = datetime.now().strftime("") 
-            output_name = f"{dt_str}_{planner}.json"
-            json_path = os.path.join(output_name, path)
+        # def _build_json(raw_wpts, smooth_wpts, planner, path):
+        #     """Generate the output JSON object and save to a JSON file."""
 
-            path_planner_dict = {
-                "Planner": planner,
-                "map": None, 
-                "timestamp" : dt_str,
-                "raw_wpts": raw_wpts,
-                "smooth_wpts": smooth_wpts
-            }
+        #     dt_str = datetime.now().strftime("") 
+        #     output_name = f"{dt_str}_{planner}.json"
+        #     json_path = os.path.join(output_name, path)
 
-            with open(json_path, 'w') as json_file:
-                json.dump(path_planner_dict, json_file)
+        #     path_planner_dict = {
+        #         "Planner": planner,
+        #         "map": None, 
+        #         "timestamp" : dt_str,
+        #         "raw_wpts": raw_wpts,
+        #         "smooth_wpts": smooth_wpts
+        #     }
 
-            return json_path
+        #     with open(json_path, 'w') as json_file:
+        #         json.dump(path_planner_dict, json_file)
 
-        # Create Configuration Graph   
-        _graph = _build_graph()
-
-        # Solve A* over Configuration Graph
-        algo = AStar(grid_map=_graph)
-        output = algo.run(start, goal)  
-
-        if output:
-            _, output_idx  = output[0], output[1]
-        else:
-            self._logger.error(f"A* could NOT find a feasiable path from {start} -> {output}")
+        #     return json_path
 
 
-        # Apply Path Smoothing to output Waypoints
-        x_bez, y_bez = BezierPathSmoothing(ctr_points=output_idx).compute_smooth_path() 
+        # # Create Configuration Graph   
+        # _graph = _build_graph()
 
-        # Build and Export output file
-        output_path = _build_json(raw_wpts, smooth_wpts, planner, path)
+        # # Solve A* over Configuration Graph
+        # algo = AStar(grid_map=_graph)
+        # output = algo.run(start, goal)  
 
-        return output
+        # if output:
+        #     raw_wpts  = output[1]
+        # else:
+        #     self._logger.error(f"A* could NOT find a feasiable path from {start} -> {output}")
+
+
+        # # Apply Path Smoothing to output Waypoints
+        # x_bez, y_bez = BezierPathSmoothing(ctr_points=raw_wpts).compute_smooth_path() 
+
+        # # Build and Export output file
+        # output_path = _build_json(raw_wpts, smooth_wpts, self.planner_type, path)
+
+        # return output
+
+        pass
 
     def _solve_rrt(self, start, goal):
         pass
