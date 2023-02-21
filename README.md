@@ -17,3 +17,29 @@ This repo implements a ROS2 server for computing the path planning required for 
 - [x] Refactor ROS2 Path service to create solve A* 
 - [ ] Solve RRT/RRT*/PRM 
 - [ ] Add RRT/RRT*/PRM algorithm support to Path service
+
+
+
+# UC Davis Department of Mechanical & Aerospace Engineering Masters Degree Plan 2 Project report
+
+## Path Planning for Autonomous Vehicles Outline 
+
+### Introduction 
+
+### SLAM & Map Generation using Lidar
+
+### Occupency Grid Maps 
+
+0. Probablistic Occupancy 
+1. Inverse Sensor model
+2. Breseham's Line Algorithm 
+
+### Graph Generation 
+
+### Dijstra's Shortest Path
+
+### A* Heuristic Search
+
+### Path Smoothing 
+
+### Waypoint Generation
