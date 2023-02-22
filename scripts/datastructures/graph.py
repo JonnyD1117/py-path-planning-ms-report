@@ -1,10 +1,13 @@
-from edge_base import WeightedEdgeBase as Edge
+from edge import WeightedEdge as Edge
 
-class GraphBase:
+class Graph:
 
     def __init__(self):
         self._graph_dict = dict() 
         self._idx_2_node = dict() 
+
+    def find_nearest_node(self, pos):
+        pass
 
     def add_node(self, node):
 
@@ -53,7 +56,7 @@ class GraphBase:
 
         for node, neighbors in self._graph_dict.items():
 
-            if len(neighbors.keys()) ==0:
+            if len(neighbors.keys()) == 0:
                 del_list.append(node)
 
         for node in del_list:

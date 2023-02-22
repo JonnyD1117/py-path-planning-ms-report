@@ -1,8 +1,7 @@
-from graph import GridMapGraphGenerator
+from generators.a_star_graph_generator import AstarGraphGenerator
 import math
 import matplotlib.pyplot as plt
 import numpy as np
-
 from path_smoothing import BezierPathSmoothing
 
 
@@ -95,7 +94,7 @@ if __name__ == "__main__":
 
     map_path = "20x20_map.pgm"
     
-    graph_gen = GridMapGraphGenerator(inflate=True, connected_8=False)
+    graph_gen = AstarGraphGenerator(inflate=True, connected_8=False)
     mat = graph_gen._pgm_map
     non_inf_mat = graph_gen._original_map
 

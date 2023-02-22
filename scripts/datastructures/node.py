@@ -1,4 +1,4 @@
-class NodeBase():
+class Node():
     def __init__(self, index=(None, None), position=(None, None)):
         self._position = position
         self._index = index

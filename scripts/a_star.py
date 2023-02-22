@@ -94,8 +94,10 @@ class AStar:
 if __name__ == "__main__":
 
     map_path = "20x20_map.pgm"
+    map_path = "/home/indy/ros2_ws/src/ros2_py_path_planning_server/maps/map.pgm"
+    conf_path = "/home/indy/ros2_ws/src/ros2_py_path_planning_server/maps/map.yaml"
     
-    graph_gen = GridMapGraphGenerator(inflate=True, connected_8=False)
+    graph_gen = GridMapGraphGenerator(map=map_path, config=conf_path, inflate=True, connected_8=False)
     mat = graph_gen._pgm_map
     non_inf_mat = graph_gen._original_map
 
@@ -110,30 +112,36 @@ if __name__ == "__main__":
     algo = AStar(grid_map=graph)
     output, output_idx = algo.run(start_idx, goal_idx)  
 
+    print(f"output len = {len(output_idx)}")
 
     b = BezierPathSmoothing(ctr_points=output_idx)
-    x_bez, y_bez = b.compute_smooth_path()  
+    x_bez, y_bez = b.compute_smooth_path() 
 
 
-    if output:
-        out_indx = [node._index for node in output]
-        for idx, val in np.ndenumerate(mat):
-            if idx in out_indx:
-                mat[idx] = .5
-
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.plot(y_bez[0], x_bez[0])
 
 
-    x = [val[0] for val in output_idx]
-    y = [val[1] for val in output_idx]
+    print(f"Bezier len = {x_bez.shape}")
 
-    # ax.scatter(x, y, c='black')
-    plt.imshow(non_inf_mat)
-    plt.show()
 
-    # print(x_bez)
+    # if output:
+    #     out_indx = [node._index for node in output]
+    #     for idx, val in np.ndenumerate(mat):
+    #         if idx in out_indx:
+    #             mat[idx] = .5
 
-    plt.plot( y_bez[0], -x_bez[0])
-    plt.show()
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111)
+    # ax.plot(y_bez[0], x_bez[0])
+
+
+    # x = [val[0] for val in output_idx]
+    # y = [val[1] for val in output_idx]
+
+    # # ax.scatter(x, y, c='black')
+    # plt.imshow(non_inf_mat)
+    # plt.show()
+
+    # # print(x_bez)
+
+    # plt.plot( y_bez[0], -x_bez[0])
+    # plt.show()

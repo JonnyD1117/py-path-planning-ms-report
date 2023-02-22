@@ -1,4 +1,4 @@
-class WeightedEdgeBase:
+class WeightedEdge:
     def __init__(self, weight):
         self._weight = weight
         

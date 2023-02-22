@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import numpy as np 
 
 
-
 class BezierPathSmoothing:
 
     def __init__(self, ctr_points, num_waypoints=500):
@@ -12,9 +11,7 @@ class BezierPathSmoothing:
         self._t = np.linspace(0,1 , num_waypoints)
         self._x_bezier = np.zeros((1, num_waypoints))
         self._y_bezier = np.zeros((1, num_waypoints))
-
         self._output = None
-
 
     def _binomial(self, n, i):
         result = math.factorial(n) / (math.factorial(i) * math.factorial(n-i))
@@ -33,29 +30,28 @@ class BezierPathSmoothing:
 
             self._x_bezier += self._basis_func(n, i, self._t) * x
             self._y_bezier += self._basis_func(n, i, self._t) * y 
-
-
         self._output = zip(self._x_bezier, self._y_bezier)
-
-
-        # fig = plt.figure()
-        # # ax = fig.add_subplot(111)
-
-        # x = [] 
-        # y = [] 
-
-        # for _x, _y in self._ctr_points:
-
-        #     x.append(_x)
-        #     y.append(_y)
-
-        # ax.plot(self._x_bezier[0], self._y_bezier[0])
-
-        # ax.scatter(x, y, c='black')
-        # plt.show()
-
-
         return self._x_bezier, self._y_bezier
+
+    def plot_path(self):
+
+        self.compute_smooth_path()
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+
+        x = [] 
+        y = [] 
+
+        for _x, _y in self._ctr_points:
+
+            x.append(_x)
+            y.append(_y)
+
+        ax.plot(self._x_bezier[0], self._y_bezier[0])
+
+        ax.scatter(x, y, c='black')
+        plt.show()
             
 
 if __name__ == "__main__":
