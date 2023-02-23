@@ -1,0 +1,30 @@
+FML:
+  vehicle: 
+    major_diameter: 18
+    minor_diameter: 6
+
+  map:
+    path: "maps/map.pgm"   # Note map.yaml needs to be in the same location as it will automatically get ingested by the planner 
+    threshold: 254
+    inflate: true
+
+  planner:
+    type: Astar #  out of Choices [ Astar, RRT, PRM, RRTstar] 
+    
+    inflation_radius: 5
+
+    start_point:
+      x_index: # some initial X index
+      y_index: # some initial Y index
+
+    goal_point:
+      x_index: # some initial X index
+      y_index: # some initial Y index 
+
+    connectivity: "connected-8"      # Could be connected-4 or connected-8
+      
+  smoothing:
+    num_wpts: 500
+
+  output: 
+    path: "some/path/to/output/JSON/directory"

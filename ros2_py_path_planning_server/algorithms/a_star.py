@@ -1,13 +1,21 @@
 from generators.a_star_graph_generator import AstarGraphGenerator
+
 import math
 import matplotlib.pyplot as plt
 import numpy as np
-from path_smoothing import BezierPathSmoothing
+from post_processing.path_smoothing import BezierPathSmoothing
 
 
 class AStar:
-    def __init__(self, grid_map):
-        self._graph = grid_map
+    def __init__(self, config):
+
+        self._config = config
+        self._graph_generator = AstarGraphGenerator(config)
+        self._graph = self._graph_generator.build_graph()
+
+        self._start_point = tuple(config["planner"]["start_point"])
+        self._goal_point =tuple(config["planner"]["goal_point"])
+        
         self._open_set = set()
         self._closed_set = set()
         self._prev_node = dict()
@@ -21,7 +29,7 @@ class AStar:
         y_start = curr_node._index[0]
         y_goal = goal_node._index[0]
         heur_dist = math.sqrt((x_goal - x_start)**2 + (y_goal-y_start)**2)
-        # return abs(x_start - x_goal) + abs(y_start - y_goal)
+        # heur_dist = abs(x_goal - x_start) + abs(y_goal-y_start)
         return heur_dist * discount
 
     def construct_shortest_path(self, current):
@@ -50,10 +58,14 @@ class AStar:
 
         return min_val, min_node
     
-    def run(self, start_idx, end_idx):
+    def run(self, start_idx=None, end_idx=None):
+
+        self._start_point = start_idx if start_idx else self._start_point
+        self._goal_point = end_idx if end_idx else self._goal_point
+
         # Initialize Start and Goal Nodes
-        start_node = self._graph.get_node_from_index(start_idx)
-        end_node = self._graph.get_node_from_index(end_idx)
+        start_node = self._graph.get_node_from_index(self._start_point)
+        end_node = self._graph.get_node_from_index(self._goal_point)
 
         # Initialize Node & Heuristic Costs
         self._f_score[start_node] = 0

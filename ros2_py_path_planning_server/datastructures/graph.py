@@ -1,4 +1,4 @@
-from edge import WeightedEdge as Edge
+from datastructures.edge import WeightedEdge as Edge
 
 class Graph:
 
@@ -72,3 +72,9 @@ class Graph:
 
             name_ls = [node._index for node, edge in adj_dict.items()]
             print(f"Node = {node._index}, Adjency List = {name_ls}")
+
+
+if __name__ == "__main__":
+
+    g = Graph()
+    print("hi")

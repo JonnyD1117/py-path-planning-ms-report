@@ -21,7 +21,8 @@ setup(
     entry_points={
         'console_scripts': [
             f"path_server = {package_name}.path_planning_service:main",
-            f"path_client = {package_name}.path_planning_client:main"
+            f"path_client = {package_name}.path_planning_client:main",
+            f"planner = {package_name}.utils.planner:main"
         ],
     },
 )
