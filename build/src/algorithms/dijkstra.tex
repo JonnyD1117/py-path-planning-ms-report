@@ -1,0 +1,44 @@
+\label{Dijkstra}
+\begin{algorithm}
+  \caption{Dijkstra's Shortest Path}
+  \begin{algorithmic}[1]
+  \renewcommand{\algorithmicrequire}{\textbf{Input: Graph, startNode, targetNode}}
+  \renewcommand{\algorithmicensure}{\textbf{Output: Path}}
+  \\ \textit{Initialize Graph} :
+   \FOR { node in Graph }
+   \STATE $\text{node.score} := \infty$
+   \STATE $\text{node.visted} := \text{false}$
+   \ENDFOR
+
+   \\ \textit{Solve Graph} :
+   \STATE $\text{starNode.score} := 0$
+   \WHILE { ( true ) }
+  \STATE $\text{currentNode} := \text{nodeWithLowestScore(Graph)}$
+  \STATE $\text{currentNode.visted} := \text{true}$
+
+    \FOR { ( node in currentNode.neighbors ) }
+    \IF{ ( $\text{node.visited} == \text{false}$ ) }
+    \STATE $\text{newScore} := \text{calculateScore(currentNode, node)}$
+    \IF{ ( $\text{newScore} < \text{node.score}$ ) }
+    \STATE  $\text{node.score} := \text{newScore}$
+    \STATE  $\text{node.routeToNode} := \text{currentNode}$
+    \ENDIF
+    \ENDIF
+    \ENDFOR
+    \\
+    \\ \textit{Return Path} :
+    \IF{ ( currentNode == targetNode ) }
+    \RETURN build{Path(targetNode)}
+    \ENDIF
+
+    \\
+    \\ \textit{Raise Error if No Path is Found} :
+
+    \IF{nodeWithLowestScore(graph).score == $\infty$}
+    \RETURN ERROR: No Path Found
+    \ENDIF
+
+   \ENDWHILE
+
+  \end{algorithmic} 
+  \end{algorithm}

@@ -1,0 +1,81 @@
+
+\documentclass[journal]{IEEEtran}
+
+\usepackage{biblatex}
+
+
+\usepackage[fleqn]{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{cancel}
+\usepackage{tabularx}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{parskip}
+
+\usepackage{bookmark}
+
+% \usepackage{caption}
+% \usepackage{subcaption}
+
+\usepackage{subfig}
+\addbibresource{citations.bib}
+
+\usepackage{biblatex}
+\bibliography{citations.bib}
+
+\graphicspath {{src/images}}
+
+\usepackage{hyperref}
+\hypersetup{
+colorlinks=false,
+linkcolor=blue,
+filecolor=magenta,
+    urlcolor=blue,
+}
+\urlstyle{same}
+
+\begin{document}
+
+\title{Path Planning For Autonomous Vehicles}
+\author{Jonathan~Dorsey \IEEEmembership{Member: No Sleep Club: est. 2017} \\  \url{https://github.com/JonnyD1117/python-path-planners}}
+\markboth{Journal of Graduate School Assignments March~2023}
+
+\maketitle
+
+\begin{abstract}
+  \input{src/sections/0_abstract.tex}
+\end{abstract}
+
+% Note that keywords are not normally used for peerreview papers.
+\begin{IEEEkeywords}
+	A*, Dijkstra, PRM, RRT, path planning, mobile robots, autonomous vehicles
+\end{IEEEkeywords}
+
+\IEEEpeerreviewmaketitle
+
+\input{src/sections/1_introduction.tex}
+\input{src/sections/2_path_planning_prob.tex}
+\input{src/sections/3_prerequisite_concepts.tex}
+\input{src/sections/4_path_planning.tex}
+\input{src/sections/5_planner_implemention.tex}
+\input{src/sections/6_path_smoothing.tex}
+\input{src/sections/7_simulation.tex}
+\input{src/sections/8_results.tex}
+\input{src/sections/9_conclusions.tex}
+\input{src/sections/10_future_recommendations.tex}
+% \input{src/sections/11_bibliography.tex}
+
+% \input{secsections/1_introduction.tex}
+% \input{sections/2_path_planning_prob.tex}
+% \input{sections/3_prerequisite_concepts.tex}
+% \input{sections/4_path_planning.tex}
+% \input{sections/5_planner_implemention.tex}
+% \input{sections/6_path_smoothing.tex}
+% \input{sections/7_simulation.tex}
+% \input{sections/8_results.tex}
+% \input{sections/9_conclusions.tex}
+% \input{sections/10_future_recommendations.tex}
+% \input{sections/11_bibliography.tex}
+
+\end{document}

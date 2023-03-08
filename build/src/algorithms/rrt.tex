@@ -1,0 +1,33 @@
+\label{RRT}
+\begin{algorithm}
+  \caption{RRT Construction}
+  \begin{algorithmic}[1]
+
+  \renewcommand{\algorithmicrequire}{\textbf{Input:} }
+  \renewcommand{\algorithmicensure}{\textbf{Output:} }
+  \REQUIRE 
+    \text{    $q_0$:the configuration where the tree is rooted} \linebreak
+    \text{    n: the number of attempts to expand the tree } \linebreak
+
+  \ENSURE  \linebreak
+    \text{    A tree T = (V, E) that is rooted at $q_0$ and has $\le $ n configurations } \linebreak
+
+  \hrulefill 
+
+  \STATE \text{$V \leftarrow \{q_0\}$}
+  \STATE \text{$E \leftarrow \emptyset$}
+
+  \FOR {  i = 1 to n  }
+  \STATE $q_{rand} \leftarrow$ a randomly chosen free configuration
+  \STATE $q_{near} \leftarrow$ closest neighbor of q in T
+  \STATE $q_{new} \leftarrow$ node a dist $\Delta S$ from $q_{near}$ to $q_{rand}$
+    \IF { $q_{new}$ is collision-free }
+      \STATE V $\leftarrow$ V $\cup$ \{$q_{new}$\}
+      \STATE E $\leftarrow$ E $\cup$ \{($q_{near}$, $q_{new}$ )\}
+      \RETURN $q_{new}$
+    \ENDIF
+    \RETURN 0
+  \ENDFOR
+
+  \end{algorithmic} 
+  \end{algorithm}

@@ -1,0 +1,39 @@
+\label{Probalistic Road Maps}
+\begin{algorithm}
+  \caption{Roadmap Construction}
+  \begin{algorithmic}[1]
+
+  \renewcommand{\algorithmicrequire}{\textbf{Input:} }
+  \renewcommand{\algorithmicensure}{\textbf{Output:} }
+  \REQUIRE 
+    \text{    n: number of nodes in roadmap} \linebreak
+    \text{    k: number of closest neighbors to examine for each configuration} \linebreak
+
+  % \textbf{Output:} \linebreak
+  \ENSURE  \linebreak
+    \text{    A roadmap G = (V, E)} \linebreak
+
+  \hrulefill 
+
+  \STATE \text{$V \leftarrow \emptyset$}
+  \STATE \text{$E \leftarrow \emptyset$}
+
+   \WHILE { $\lvert V \rvert < n$ }
+
+    \STATE \textbf{repeat}
+    \STATE $\text{     q} \leftarrow \text{random sample from Configuration Space } \mathcal{Q}$
+    \STATE \textbf{until} \text{q is collision-free}
+    \STATE $V \leftarrow V \cup \text{\{q\}}$
+   \ENDWHILE
+   \FOR {  $\textbf{all } \text{q} \in \text{V}$  }
+   \STATE $N_q \leftarrow \text{the k nearest neighbors of q from V by \textit{dist}}$
+    \FOR { $\textbf{all } q^{\prime} \in N_q$  }
+    \IF { ($\text{q, } q^{\prime}) \notin \text{E \textbf{and }} \Delta(\text{q, } q^{\prime}) \ne 0$ }
+    \STATE $\text{E} \leftarrow \text{E } \cup \{ ($\text{q, } q^{\prime}) \}$
+    \ENDIF
+    \ENDFOR
+
+   \ENDFOR
+
+  \end{algorithmic} 
+  \end{algorithm}
