@@ -3,19 +3,27 @@
 
 \usepackage{biblatex}
 
+
 \usepackage[fleqn]{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{cancel}
 \usepackage{tabularx}
+\usepackage{algorithm}
+\usepackage{algorithmic}
 
-\usepackage{caption}
+\usepackage{bookmark}
+
+% \usepackage{caption}
 % \usepackage{subcaption}
 
 \usepackage{subfig}
-\addbibresource{./citations.bib}
+\addbibresource{citations.bib}
 
-\graphicspath{ {./images}}
+\usepackage{biblatex}
+\bibliography{citations.bib}
+
+\graphicspath{./images}
 
 \usepackage{hyperref}
 \hypersetup{
@@ -30,23 +38,18 @@ filecolor=magenta,
 
 \begin{document}
 
-\title{Path Planning For Autonomous Vehicles \\ Dr. Assadian - Future Mobility Lab}
+\title{Path Planning For Autonomous Vehicles}
 
 
-\author{Jonathan~Dorsey \IEEEmembership{Member: No Sleep Club: est. 2017} \\  \url{https://github.com/JonnyD1117/ros2-py-path-planning-server}}
+\author{Jonathan~Dorsey \IEEEmembership{Member: No Sleep Club: est. 2017} \\  \url{https://github.com/JonnyD1117/python-path-planners}}
 
-
-% The paper headers
-\markboth{Journal of Graduate School Assignments, March~2023}%
+\markboth{Journal of Graduate School Assignments March~2023}
 
 \maketitle
 
-
-
-% As a general rule, do not put math, special symbols or citations
-% in the abstract or keywords.
 \begin{abstract}
-  The objective of this project is.....???
+  This work introduces the problem of path planning for mobile autonomous vehicles, in static environments. It focuses on the practical context surrounding path planning such as occupancy grid maps, simultaneous localization and mapping (SLAM), and graph generation culminating in a survey of several fundamental planning algorithms, their pros and conns concerning both performance and computational efficiency. These algorithms include A*, Dijkstra's shortest path, Rapidly Exploring Random Trees, and Probablistic Road Maps. Each of these algorithms has previously been the stateoftheart in path planning for mobile robots, and provides the theoretical foundational upon which modern path planners are often synthesized. This paper concludes by identifying the strengths and weaknesses of each planning algorithm, with suggestions concerning their most appropriate applications, and finally concludes by a discussion of possible exentions of path planners into dynamic environments by the inclusion of a local planner.  
+  
 \end{abstract}
 
 % Note that keywords are not normally used for peerreview papers.
@@ -59,65 +62,140 @@ filecolor=magenta,
 
 \section{Introduction}
 
-\IEEEPARstart{T}{he} world of robotics is full of constraints, demands, and performance trade-offs that humans handle naturally on a daily basis.
 
-\section{Path Planning for Mobile Robots}
-
-
-\subsection{Motivation}
-The motivation for path planning in the domain of mobile robotics becomes very apparent when naively asking the questio of "How do we get a mobile robot to get from a starting location to a end location?". \\
-
-Before any control actions can be taken, the robot must first determine its path which can then be fed as an input into the which ever control scheme the robot implements. 
-
-The goal of path planners is to systematically break down the problem of where the robot should go next in a computationally tractable, physically possible, and desireable way. 
+\IEEEPARstart{R}{obotics} is a broad, complex, and multifaceted field of study that integrates a wide range of technical disciplines. One of the most visible applications of robotics, in the public consciousness, is the emergence of autonomous vehicles. The task of automating the movement of a vehicle or robot in a safe, practical, and reliable manner is a complex field of study that investigates many tough societal and technical issues. In particular, one of the most fundamental challenges is that of \textbf{path planning} since the creation of a feasible path for the system to traverse is usually the first step in the process of navigating in complex environments. \\
 
 
+The broad objective of this paper is to survey the most fundamental and popular path planners in use today, to implement these planners in Python, juxtapose their relative merits, and to contextualize the process of constructing and using these planners from the building blocks of raw sensor input to the final output of waypoints being fed to a controller.   
+
+\section{The Path Planning Problem} 
+The general path planning problem, as applicable to mobile robotics, is defined as the desired to generate a feasibly optimal sequence of waypoints (path) between two specified locations in space. The creation of this path is typically subject to the application of some heuristic(s), metric(s), or set of constraints. The most general construction of this problem often assumes that obstacles in the environment can be dynamic. \\
 
 
-\section{Occupancy Grid Maps}
+It should be noted that the definition of path planning is a very broad concept that encompasses many different possible scenarios. For the most part, inorder for a path planner to be useful in an actual system (whether in an embodied robot or vehicle or in a video game [e.g simualtion]), the path planning problem is typically coupled with the assumption that the planner has access to globally knowledge of the world (as in a video game or simulation) or that the embodied system posesses the means of sensing it's environment, in close to realtime. 
 
-The first in any in any path planning problem is to define the domain over which a path is to be planned. One of many solutions used to make this a computationally tractable task is to the partition space into a finite number of discrete cells, rather than planing directly from the continuous configuration space, which is often of either two or three dimensions. 
+\subsection{Offline Planning for Static Environments}
+Even though the general statement of the path planning problem is of great interest and practical utility, it can often be too ambitious of a goal or merely impossible for a given system to achieve given its construction, sensor payload, or onboard computational power. It is often sufficient for a path planner to produce perfectly via outputs with the inclusion of a few simplifying assumptions. \\
 
-One of the most popular approaches to spatial discretization is that of the \textbf{occupancy grid map}. In this formulation, a configuration space is discretezed into a uniform 2D/3D grid. Each cell or pixel holds a single value between $\left [ 0, 1 \right ]$, which represents the probability at which that cell is occupied. A value of zero would indicate that the cell is 100\% free and does not contain any objects or obstacles, where as, a value of one indicates the cell is 100\% occupied and contains no free space. Naturally, it follows that values between zero and one indicate the probability that the cell is more of less occupied. \\
+For this paper, the simplifying assumptions are that all environments or maps being discussed are \textbf{static}. This has a few downstream side-effects  
 
-
-\subsection{Assumptions \& Tradeoffs}
-
-It is important to note that the assumptions and compromises that applying such a discretization scheme imposes upon the path planning algorithms which must use this grid map as an input. 
-
-\subsubsection{Benefits}
-
-The first benefit of using these grid maps is there spatial effiency. Due to their ability to be store as either a 2d grid of cells (exactly like a picture is comprised of pixels), or a 3d volumetric tensor of cells, these grid maps can efficiently be stored into a computers RAM and queried. \\
-
-The second benefit of grid maps comes from the fact these maps can literally be stored on a computer as a gray-scale image. 
+\begin{itemize}
+  \item Planner does not need to account for dynamic obstacles
+  \item Planning can occur offline as a static map will not change. 
+\end{itemize}
 
 
-\subsubsection{Limitations}
+\section{Prereqisite Concepts}
 
-The first limitation of grid maps comes directly from the process of uniformly discretizing the configuration space. By definition grid maps degrade the resolution and fidelity of the configuruation space by forcing its representation is an irreversible lossly manner. Much like the the discretization of analogue to digital signals, discretization will indeed degrade the fideility of the original signal; however, it is often sampled at a high enough frequency to yield the resulting losses insignificant when considering the gains achieved by being able to encapsulate and query finite data-structures with high effiency. \\
+One of the manny difficulties in studying robotics is the necessity to constantly be building upon prexisting concepts that have been proved out and implemented by others. While it is amazing that we can use the work of others as a foundation, this level of abstraction can often obscure the the "big picture" of what exactly our robot has to do before it can accomplish the tasks we set it. \\
 
-This implies that by using grid map, we are necessarily missing information that exists in the actual configuration space which which is too fine to be resolved into our grid map. This problem can usually be addressed by creating a grid map of high enough density that any aliasing if minor enough to be ignored by the path planning algorithms that use that map. 
+This section is dedicated towards anchoring the following discussion about path planners by first contextualizing some of the important tasks that must be performed before implementing a path planner is even viable.
 
-\subsection{Grid Map Generation with Lidar}
-
-In general the problem of creating a occupancy grid map is handled by the Simulaneous Localization \& Mapping (SLAM) algorithm which is being used. However, for explanations sake, we can illustrate the creation of a grid map in a static environment with a static planar lidar sensor. 
-
-
-\subsubsection{Invserse Sensor Model}
-
-\subsubsection{Bresenham's Line Algorithm}
+\subsection{Environment Mapping}
+Briefly, the goal of any planner is to compute a feasible path through an environment (whether real or simulated). This begs the question, "what environment is being navigated?".  The environment is the ground truth that our system must exist within; yet, it is often practicable to create an intermediate form that encapsulates 'enough' details about the environment for the planner to be efficently parse. 
 
 
+This is the task of \textbf{mapping}; it is the process of exracting desirable features or landmarks, from an environment, and structuring these features into a representation that our path planner can efficiently query. \\
+
+These representations can be dense 2D/3D lidar point clouds; however, more often than not a representation is chosen for its simplicity in capturing and structuring important features of the environment without degrading the feature (introducing loss) while remaining computationally efficient. Finally, the structure/representation of the map has a tremendous impact on the fundamental design and limitations concerning how a path planner functions.  \\
+
+\subsubsection{Dimensionality Reduction}
+The mapping problem can be effectively summarized as the tradeoff of quality and quanity of information vs size of information. Since maps must be stored and processed on computers with finite memory and processing power, it is highly desireable to create maps that are as detailed as possible without utilizing a massive amount of resources. This typically leads designers to opt for less accurate environmental representations, to gain the ease and speed of processing the map in realtime. \\
+
+Even though robots exist in a three-dimensions of space, it is often sufficient to navigate the 3D world, by planning in a 2D projection of the actual environment. This technique is called \textbf{dimensionality reduction}. When applicable, this technique can greatly improve the speed at which a path can be computed though a map. \\
+
+\subsubsection{Discretization}
+Unfortunately, even under these assumptions, a 2D continuous map still becomes computationally untractable. Computers are discrete number counting systems and are optimized to they get to operate on data discrete data. One of the most popular methods, not just in robotics but also in numerical methods, is to discretize the continuous domain into discrete grids or cells. By doing so, the computer can be used to efficiently store and query a map in finite time. \\
+
+The side-effect of discretization is an unavoidable loss of information. While undesirable, carefully discretization parameterization, mitigate lossy behavior, or ensure that amount of information is insignificant. This however, leads to the problem of deciding how to discrize an environment into an effective mapping. Several popular discretization schemes are listed below for reference. \\
+
+\begin{itemize}
+  \item Quad Tree 
+  \item Oct Tree 
+  \item Uniform Grid
+  \item Delauny Triangulation \\
+\end{itemize}
+
+
+Generally, uniform discretization is used whenever possible for ease of implemention; however, in situations where even a uniform grid size costs too much (e.g. large finely resolved grids), we can use quad or oct tree (2D \& 3D representations respectively), to partition a map into non-uniform grid structure, that is simple to search and only resolves higher details in regions where it is necessary. \\
+
+\subsubsection{Inverse Sensor Model}
+
+One of the most important parts of the mapping process is the generation of map features from global knowledge or sensor data. 
+
+Given a uniformly discretized mapping, we still need to 
+
+% Now that we have talked about what a grip map is, why they are important and how they are used in mobile robotics, talk aobut how we can use a 2d Planar lidar to create one using the inverse sensor model. 
+% \subsubsection{Bresenham Line Algorithm}
+% Then... Discuss how due to the nature of the grip map being discretized we need a method to deterine which pixels should be included to create a straight line. 
+% Discretization causes aliasing (jagged edges) bresehams line algorithm allows use to draw a line between any two pixels on a screen. (used in computer graphics)
+% For grid map generation, we used bresehams line algorithm as a model of the laser beam to determine which cells of the grid map are free space and which cells are occupied. 
+
+
+\subsubsection{SLAM}
+Frequently, there exists situations where functional maps do not exist for a given environment, and they must be either preprocessed or computed on the fly by the robot as it traverses the environment. The latter operation is known as \textbf{Simultaneous Localization \& Mapping} or SLAM for short. SLAM is an incredibly detailed field of study with many different approachs from EKF SLAM, Graph SLAM, RGBD SLAM, and other vision based SLAM algorithms\\
+
+
+For the purpose of this paper, it suffices to say that without a complete or partial mapping of the environment, the robot will first have to construction the map before its able to fully plan a path through the environment. While important, for the planners implemented in this paper, we assume that map has already been generated.
+
+
+\subsubsection{Occupancy Grid Map}
+
+One of the most popular mapping respresentations is that of the \textbf{occupancy grid map} (OGM). As the name implies, this map is composed of a grid (typically of uniform discretization); however the unique distinction of an OGM is that it each grid is associated with a value ( more specifically a probability) ranging from $[0, 1]$. This value indicates the probability that that grid cell is occupied. Zero indicates completely free and one indicated completely obstructed, with any value inbetween indicating the likelihood of occupancy. \\
+
+Assuming a uniform discretization in 2D space, occupancy grid maps effectively become a grayscale picture of size $m \times n$. The similarity between occupancy grid maps and grayscale images is so complete that most grid maps are storaged at 8-bit grayscale pictures. This is very practical as many programming languages have libraries that can easily read in images and perform operations on them. The remainder of this paper assumes that every map is encoded as a occupancy grid map. \\
+
+\subsection{Graph Generation}
+
+While not universally true, graph-based planners have historically been the most popular and practical for storing non-trivial sized maps. For the purposes of this paper, all of the planners that we will cover are graph-based and use some variant graph-like datastructure (e.g. graph or tree). \\
+
+\subsubsection{Grid World}
+
+One of the most common approaches to constructing a graph is the notion of directly converting each cell of an occupancy grid map, and then applying rules for how to wire up the edges between each of these nodes. This is called a \textbf{grid world}. The uniform node generation and rules-based edge generation of this graph mean that this graph is very simple from an intuitive sense to understand and implement programatically.\\ 
+
+The two most popular connectivity rules are called \textbf{connected-8} and \textbf{connected-4}. In connected-4, the rules that we imposes on transitioning to a new cell limit legal moves to up/down/left/right (no diagonal motion is permitted.) while connected-8 graphs are allow to move 1 cell in any direction up/down/left/right and diagonals. In addition to these connectivity rules, there are two different methods that for how obstacles can be integrated into the final graph. \\
+
+These two methods are \textbf{infinite edge weights} and \textbf{edge removal}. Inifite edge weighting works, by garunteeing that the shortest (aka lowest cost) path through the graph will never be through an obstacle. Edge removal, on the other hand, completely removes the edge from the graph, making it impossible for the planner to traverse over locations on the graph that are obstacles. 
+
+\subsubsection{Random Sampling}
+
+One of the downsides of grid world search graphs is the density of the map. By definition, every pixel of the occupancy grid map could represent a free cell, and obeys the curse of dimensionality as the size of the map increases. To address this scaling problem, a popular technique is to employ \textbf{random sampling}. This approach is based on concept of Monte Carlo methods, where the graph is constructed by uniformly sampling the the environment. \\
+
+In principle, in the limit as the number of samples approaches infinity, we can garuntee the convergence of our path planner to the globally optimal path (if it exists). In practice, sampling-based methods can possess an order of magnitude fewer nodes, in the graph, while still providing enough converage and sample density to produce a a feasible graph even if that requires relaxing our desire to achieve a globally optimal path through the environment. An excellent example of this in shown the in probablistic road maps algorithm. 
+
+\subsubsection{Obstacle Inflation}
+
+One of the pitfalls of using occupancy grid maps as the basis for the search graph is that each cell is effectively a pixel in an image. Depending on how dense our sensor readings are, there are non-zero chance that paths through the environment that are only a single pixel wide exist. This is a problem for our robot if it happens to be larger than the adjusted realworld scale of the pixel. \\
+
+To prevent situations like this from occuring and generating paths through infeasible regions of the map, we can apply a technical known as an obstacle inflation layer. This very simple technique artifically scales up every obstacle pixel in the scene take up more space than the actual sensor reading indictated. The result of this \textbf{inflation} is that sensor noise is usually absorbed into these inflated obstacles. Additionally, this technique provides a sort of poor-mans approach to prevent the phenominon of "wall-hugging", where the planner, trying to find the shortest path between two points in the environment (using the occupancy grid map as its reference) will often hug the wall to reduce the distance (total cost) of the path.\\
+
+While nifty, there are other techniques based on applying cost gradients as a function of the distance away from an obstacle to motivate the path planner from hugging the wall, as the gradient cost will incentize the planner to prefer cells that are farther away from walls. 
 
 
 
+\section{Path Planning}
 
-\section{Path Planning Algorithms}
+In the domain of robotics, there are hundreds or even thousands of different path planning implementations some of which present totally new formulations for planning a path through a map, but most present incremental improvements that decrease the compute time or resources, or achieve some desirable measure. The goal of this paper is to present a handful of the most popular path planners that have made a significant impact in the field of robotics and that are used as the baseline or benchmark against which all other planning algorithms compare their performance. \\
+
+This paper will cover A*, RRT, PRM, and Dijkstra's Shortest Path. Each of these algorithms is graph-based in so much as they utilize a graph or tree structure as the datastructure from which the algorithm will predict the shortest path. While algorithms like A* and Dijkstra typically can be given a prexisting graph to traverse, algorithms like RRT and PRM implement a form Monte Carlo methods by applying a form of uniform random sampling to generate the graph/tree that they traverse. \\ 
+
 This section will cover several of the most popular path planning algorithms such as $A^{\*}$, Dijkstra's Shortest Path, Probablistic Road Maps, and more. The objective of each of these algorithms is to leverage different computational tools that are available to us such that we can extract (in finite time) a feasible path that the robot could physically travel to obtain its goal.
 
-\subsection{Graph Search}
 
-The first categories of algorithms to investigate are among the most popula. These are graph search algorithms. The primary mechanism of these planners is to construct a graph of the configuration space. Once this has been achieved different algorithms, heuristics, and operations can be applied to the graph to endeavor to find the shortest path between two nodes that exist in that graph. \\
+\subsection{Global vs Local Planners}
+
+Before diving into the details of each planner, it is important to clear up a point concerning the type of planning that we are covering in this paper. In general, planners fall into one of two major functional categories which are agnostic with regards to the mechanism of the planner. These are \textbf{global} and \textbf{local} planners \\ 
+
+The goal of global planner is to provide the idealized "global" path between the starting location and the target destination. Typically this plan is optimizing some metric(s) such as shortest distance, curvative constraints, and static object avoidance. In a perfect world, an autonomous robot/vehicle would only require a global planner and a means of localizing itself (from sensor measurements) in the map; however, dynamic obstacles, imperfect mapping, localization failures and alike require robots to be more robust to uncertainty. \\
+
+This leads to the development of local planners. The function of a local planner is to account for uncertainty in the environment, discepencies in sensor or localizations measurements...etc in an attempt to maintain a feasible and unobstructed path for the robot even if this mean diverging from the global path temporarily. Some local planners include the behavior of smoothing the global path path and providing waypoints to the control system. \\
+
+However, local planners are more than just a post-processing of the global path in so much as the local planner is aware of the pose, dynamics, kinematics, constraints, and sensor data of a robot and uses these in an attempt to create a locally feasible path through the environment. 
+
+
+\subsection{Planning Algorthms}
+
+The first category of planning algorithms are so-called \textbf{Graph-Search}. The primary mechanism of these planners is to construct a graph of the configuration space. Once this has been achieved different algorithms, heuristics, and operations can be applied to the graph to endeavor to find the shortest path between two nodes that exist in that graph. \\
 
 Occupancy grid maps are ideal for the such path planners in that it is trivial to translate the grid map into a graph data structure, with only a few simple rules for legal moves between cells of the grid map. The typical connectivity of these spatial graphs are either \textbf{connected-4} or \textbf{connected-8}.
 
@@ -140,26 +218,68 @@ $A^{\*}$ is the spiritual successor to Dijkstra's Algorithm in so much as it too
 Previous with Dijkstra's algorithm, the graph is searched in a breadth-first manner, this means that effectively the entire graph must be search (until the goal node is reached). The addition of a heuristic proves the planner with the ability to preferentially search in a given direction that will traverse nodes that are more likely to be approaching the goal node fom the starting node. So long as the heuristic is quick to compute and admissible (an exact or under estimate of the actual distance to the goal node), we can use heuristic search to drastically improve the planners convergence rate. 
 
 
-\subsection{Probabilistic Road Maps}
+\subsubsection{Probabilistic Road Maps}
 
 Probablistic road maps (PRM) is a the combination of two techniques, random sampling, and Dijkstra's algorithm. The objective of PRM is to decrease the density of the graph structure, but uniformly sampling the configuration space and creating a graph from these samples, instead of creating a pixel level accurate graph as represented by our grid map. \\
 
 This technique is not only faster for the graph generation porition of the algorithm, but since it's graph is orders of magnitutude less dense than the graph that we generated for A* or Dijkstra we can apply either of these algoithms over this "sampled" graph with the result that traversing this graph is MUCH faster due to decreases node density of the graph mentioned previously.
 
-\subsection{Rapidly Exploring Random Trees}
+\subsubsection{Rapidly Exploring Random Trees}
 Similar to PRM, Rapidly Exploring Random Trees (RRT), also attempt to leverage Monte Carlo method of random sampling to improve the sample efficiently and reduce the graph generation time. However, instead of creating a graph, RRT's create a tree data structure. \\
 
 This structure has the benefit of being incredibly easy to determine the shortest path from the root of the tree to the desired goal node, (so long as a path actually exists).
 
-
-\subsubsection{RRT}
-
 Unlike the previous algorithms review so far, RRT is not garunteed to find the shortest path between two nodes even in that limit that we infinitely sample the configuration space. This is due to the static nature of the tree generation. 
 
-\subsubsection{RRT*}
+\section{Planner Implementations}
 
-Unlike RRT, RRT* is garunteed to find the shortest path in the limit, due to it's improved mechanisms of leaf generation and lowest cost tree re-wiring. 
+\subsection{Dijkstra Shortest Path}
+\label{Dijkstra}
+\begin{algorithm}
+  \caption{Dijkstra's Shortest Path}
+  \begin{algorithmic}[1]
+  \renewcommand{\algorithmicrequire}{\textbf{Input:}}
+  \renewcommand{\algorithmicensure}{\textbf{Output:}}
+  \REQUIRE in
+  \ENSURE  out
+  \\ \textit{Initialisation} :
+   \STATE first statement
+  \\ \textit{LOOP Process}
+   \FOR {$i = l-2$ to $0$}
+   \STATE statements..
+   \IF {($i \ne 0$)}
+   \STATE statement..
+   \ENDIF
+   \ENDFOR
+  \RETURN $P$ 
+  \end{algorithmic} 
+  \end{algorithm}
+\subsection{A*}
 
+% \label{Astar}
+% \begin{algorithm}
+%   \caption{A* Heuristic Search}
+%   \begin{algorithmic}[1]
+%   \end{algorithmic} 
+%   \end{algorithm}
+
+\subsection{RRT}
+% \label{RRT}
+% \begin{algorithm}
+%   \caption{Rapidly Exploring Random Trees (RRT)}
+%   \begin{algorithmic}[1]
+%   \end{algorithmic} 
+%   \end{algorithm}
+\subsection{PRM}
+
+% \label{PRM}
+
+% \begin{algorithm}
+%   \caption{Probablistic Road Maps (PRM)}
+%   \begin{algorithmic}[1]
+
+%   \end{algorithmic} 
+%   \end{algorithm}
 
 \section{Path Smoothing}
 
@@ -182,13 +302,101 @@ This concept of path smoothing is simple and direct; however it suffers from the
 Unlike Bezier path smoothing, optimizations based smoothing works on the principle of minimizing some continuous cost function associated with the points output by the planner. This methid is far more computationally expensive and far less intuitive than the implementation of Bezier curves; however, as with most optimizations problems it can be configured as a constrained optimization to obey certain required physically limiations/constraints such as minimum allowable curvature.  
 
 
-\section{Way Point Generation}
 
-\section{Acknowledgment}
+\section{Simulation}
 
-\begin{thebibliography}{00}
-\bibitem{b2} J. Clerk Maxwell, A Treatise on Electricity and Magnetism, 3rd ed., vol. 2. Oxford: Clarendon, 1892, pp.68--73.
-\end{thebibliography}
-\vspace{12pt}
+From a technical perspective, there is surprisingly little difference between path planning on manufactured simulations that output a occupancy grid map, and a grid map that has been generated from real sensor data. The following is a summary of the simulation... and blah blah blah. 
+
+
+\section{Results}
+
+% Discuss the construction, and implementation of each path planning algorithm. Cover the pros \& Conns of each algorithm. Discuss other algorithms which address these short comings and make analytical comparisons about the best algorithms for specific use-cases.
+
+% If available discuss the performance of the actual path planner with the FML scale autonomous car project. This can get into the details about whether or not the different controllers were able to follow the same path. the Need or not of a local planner....etc
+
+\section{Conclusions}
+
+% Talk about the project as a whole how the it worked creating the path for the car. 
+Path planning in mobile robotics not only possesses a rich historical background, but also continues to make improvements with the advent of moderning computing power. 
+
+
+\section{Future Recommendations}
+
+\begin{itemize}
+  \item Gradient-based grid map cell weighting(prevent wall hugging)
+  \item Global and Local planners (would be alot better if you did)
+  \item Inflation relaxation to try and find feasible path if initial parameterization is infeasible.
+  \item Curvature or constraint based path smoothing
+\end{itemize}
+
+% Make future recommendations about the graph planners D*-lite, (any other popular re-planner) and then discuss the need for local planners to handle dynamic obstalces. Research a few "modern" local planning approachs and recommend that they be looked at in the future. 
+
+% \printbibliography
+
+
+%   \appendices
+
+%   \section{Algorithms}
+%   \label{Algorithms}
+
+  % \subsection{Dijkstra's Shortest Path}
+  % \label{Dijkstra}
+
+  % \begin{algorithm}
+  %   \caption{Dijkstra's Shortest Path}
+  %   \begin{algorithmic}[1]
+  %   \renewcommand{\algorithmicrequire}{\textbf{Input:}}
+  %   \renewcommand{\algorithmicensure}{\textbf{Output:}}
+  %   \REQUIRE in
+  %   \ENSURE  out
+  %   \\ \textit{Initialisation} :
+  %    \STATE first statement
+  %   \\ \textit{LOOP Process}
+  %    \FOR {$i = l-2$ to $0$}
+  %    \STATE statements..
+  %    \IF {($i \ne 0$)}
+  %    \STATE statement..
+  %    \ENDIF
+  %    \ENDFOR
+  %   \RETURN $P$ 
+  %   \end{algorithmic} 
+  %   \end{algorithm}
+
+  % \subsection{A* Heuristic Search}
+  % \label{Astar}
+
+  % \begin{algorithm}
+  %   \caption{A* Heuristic Search}
+  %   \begin{algorithmic}[1]
+
+  %   \end{algorithmic} 
+  %   \end{algorithm}
+
+  % \subsection{Rapidly Exploring Random Trees}
+  % \label{RRT}
+
+  % \begin{algorithm}
+  %   \caption{Rapidly Exploring Random Trees (RRT)}
+  %   \begin{algorithmic}[1]
+
+  %   \end{algorithmic} 
+  %   \end{algorithm}
+
+
+
+  % \subsection{Probablistic Road Maps}
+  % \label{PRM}
+
+  % \begin{algorithm}
+  %   \caption{Probablistic Road Maps (PRM)}
+  %   \begin{algorithmic}[1]
+
+  %   \end{algorithmic} 
+  %   \end{algorithm}
+
+
+  
+
+
 
 \end{document}

@@ -1,0 +1,3 @@
+[submodule "python-path-planners"]
+	path = python-path-planners
+	url = git@github.com:JonnyD1117/python-path-planners.git
