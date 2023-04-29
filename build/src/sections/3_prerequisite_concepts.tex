@@ -37,7 +37,7 @@ While undesirable, carefully parameterization and clever discretization methods 
 
 Generally, the most commonly used method is a uniform discretization. This structure is intuitive, simple to understand, and fast to implement in code; however, uniform discretization is subject to the curse of dimensionality. Whenever an environment is large and requires a high resolution, uniform grids become slow to search and expensive to store. In these situations, a clever trick is to partition a space into an non-uniform grid structure using Quad or Oct trees. These data structures are built so that they will keep the grid as large as possible unless it is a region of the map that is determined to require higher resolution. 
 
-\begin{figure}[h!]
+\begin{figure}[ht]
   \includegraphics[width=8cm]{quadtree}
   \centering
   \label{fig:quadtree}
@@ -71,7 +71,7 @@ For the purpose of this paper, it suffices to say that without a complete or par
 One of the most popular mapping representations is that of the \textbf{occupancy grid map} (OGM), also referred to as a probability grid map or PGM. As the name implies, this map is composed of a grid; however the unique distinction of an OGM is that it each grid is associated with a value (more specifically a probability) ranging from $[0, 1]$. This value indicates the probability that that grid cell is occupied. Zero indicates completely free and one indicated completely obstructed, with any value between indicating the likelihood of occupancy. 
 
 
-\begin{figure}[h!]
+\begin{figure}[h]
   \includegraphics[width=4cm]{pgm}
   \includegraphics[width=4.5cm]{pgm_example}
   \centering
@@ -86,14 +86,20 @@ One of the many advantages an occupancy grid map possesses is how computers stor
 \subsection{Graph Generation}
 While not universally true, graph-based planners have historically been the most popular and practical implementation for defining non-trivial sized maps. For the purposes of this paper, all of the planners that we will cover are graph-based and use some variant graph-like data structure (e.g. graphs or trees). 
 
+\begin{figure}[h]
+  \includegraphics[width=4cm]{dgraph.png}
+  \includegraphics[width=4.5cm]{tree}
+  \centering
+  \label{fig:graph}
+  \caption{Graph and Tree Data Structures}
+\end{figure}
+
 \subsubsection{Grid World}
-One of the most common approaches to constructing a graph is the notion of directly converting each cell of an occupancy grid map, and then applying rules for how to wire up the edges between each of these nodes. This is called a \textbf{grid world}. The uniform node generation and rule-based edge generation of this graph mean that this graph is intuitively very and extremely simple to implement programmatically.
+One of the most common approaches to constructing a graph is the notion of directly converting each cell of an occupancy grid map into a graph node, and then applying rules for how to wire up  edges between each of these nodes. When generated from a uniformly discretized grid map, this is called a \textbf{grid world}. The uniform node generation and rule-based edge connection means that this graph is intuitive and extremely simple to implement programmatically.
 
-The two most popular connectivity rules are known as \textbf{connected-8} and \textbf{connected-4}. In connected-4, the rules that we imposes on transitioning to a new cell limit legal moves to up/down/left/right (no diagonal motion is permitted.) while connected-8 graphs are allow to move 1 cell in any direction up/down/left/right and diagonals. In addition to these connectivity rules, there are two different methods concerning how obstacles can be integrated into the final graph. 
+The two most popular connectivity rules are known as \textbf{connected-8} and \textbf{connected-4}. In connected-4, the rules that we imposes on transitioning to a new cell limit legal moves to up/down/left/right (no diagonal motion is permitted.) while connected-8 graphs are allow to move 1 cell in any direction up/down/left/right and diagonals. 
 
-These two methods are \textbf{infinite edge weights} and \textbf{edge removal}. Infinite edge weighting works by guaranteeing that the shortest (aka lowest cost) path through the graph will never be through an obstacle. Since transitioning to an obstacle node will incur an infinite cost, this mean prevents obstacles from being included in the final path. On the other hand, the edge removal method simply removes all edges that would connect to an obstacle node, in the graph. This method works by literally making it impossible for the planner to traverse obstacles as they have all been removed from the graph. In the case of most algorithms used for static environments, this process of handling obstacle nodes is typically static and preprocessed before the robot begins navigating within the environment.
-
-% \includegraphics[scale=.23]{grid_world_pict.png}
+In addition to these connectivity rules, there are two different methods concerning how obstacles can be integrated into the final graph. These two methods are \textbf{infinite edge weights} and \textbf{edge removal}. Infinite edge weighting works by guaranteeing that the shortest (aka lowest cost) path through the graph will never be through an obstacle. Since transitioning to an obstacle node will incur an infinite cost, this mean prevents obstacles from being included in the final path. On the other hand, the edge removal method simply removes all edges that would connect to an obstacle node, in the graph. This method works by literally making it impossible for the planner to traverse obstacles as they have all been removed from the graph. In the case of most algorithms used for static environments, this process of handling obstacle nodes is typically static and preprocessed before the robot begins navigating within the environment.
 
 \begin{figure}[t]
   \includegraphics[width=8cm]{connectivity}
@@ -102,17 +108,13 @@ These two methods are \textbf{infinite edge weights} and \textbf{edge removal}. 
   \caption{Connected-4 \& Connected-8}
 \end{figure}
 
-
-% \includegraphics[scale=.23]{probablistic_road_map.png}
-
-
 \subsubsection{Random Sampling}
 
-One of the downsides of grid world search graphs is the node density. By definition, every pixel of the occupancy grid map could represent a free cell, and is subject to the curse of dimensionality as the size of the map increases. To address this scaling problem, a popular technique is to employ \textbf{random sampling}. This approach is based on the concept of Monte Carlo methods, where uniformly sampling map is used to create the nodes on the graph. 
+One of the downsides of grid world search graphs is the node density. By definition, every pixel of the occupancy grid map could represent a free cell, and is subject to the curse of dimensionality as the size of the map increases. To address this scaling problem, a popular technique is to employ \textbf{random sampling}. This approach is based on the concept of Monte Carlo methods, where a uniformly sampled map is used to create nodes in the graph. 
 
-In principle, in the limit as the number of samples approaches infinity, we can guarantee the convergence of our path planner to the globally optimal path (if it exists). In practice, sampling-based methods can possess an order of magnitude fewer nodes while still providing enough coverage at a high enough sample density to produce a feasible  path through the environment that is trending towards the global optimal path. An excellent example of this in shown the in probabilistic road maps algorithm. 
+In principle, in the limit as the number of samples approaches infinity, we can guarantee the convergence of our path planner to the globally optimal path (if it exists). In practice, sampling-based methods can possess an order of magnitude fewer nodes while still providing enough spatial coverage at a high enough sample density to produce a feasible  path through the environment that is trending towards the global optimal path. An excellent example of this in shown the in probabilistic road maps algorithm. 
 
-\subsubsection{Obstacle Inflation}
+\subsubsection{Binary Obstacle Inflation}
 
 One of the pitfalls of using occupancy grid maps as the basis for the search graph is that each cell is effectively a pixel in an image. Depending on the density of our sensor coverage, there is a non-zero chance that paths through the environment that are only a single pixel wide exist. This is a problem for our robot if it happens to be larger than the adjusted real world scale of the pixel. This is almost always the case. 
 

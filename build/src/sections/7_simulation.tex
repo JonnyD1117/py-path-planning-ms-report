@@ -1,3 +1,54 @@
-\section{Simulation}
+\section{Autonomous Vehicle Case Study}
 
-From a technical perspective, there is surprisingly little difference between path planning on manufactured simulations that output a occupancy grid map, and a grid map that has been generated from real sensor data. The following is a summary of the simulation... and blah blah blah. 
+Since the intended application for the planners covered in this paper are for use with autonomous vehicles, it is only appropriate to investigate how these planners actually perform in practice and to compare their quantitative differences.
+
+\subsection{Scenario}
+The scenario we will use is taken from a concurrent research project within our lab to quantify the differences in performance between several control schemes that require an autonomous vehicle to navigate through a non-trivial environment. Since the objective of that project is to compare the relative performance between different controllers over the same path, this scenario only requires a static environment to ensure continuity between test runs using the different controllers and is the perfect candidate for testing the planners discussed above.
+
+Unlike testing a control system, testing offline path planners can be done completely in simulation under the assumption that the input map is accurate. To ensure this, the map being fed into the planner in this implementation has been generated directly from the autonomous vehicle after SLAMing its environment. This will provide a one to one test of how these planners would have performed on the actual vehicle. The objective of this testing is to assess the  generated path distance and the time required to compute a full path, as these are both important real world metrics for a planners usability.
+
+\subsection{Setup \& Testing}
+
+
+\newline
+
+\subsubsection{Implementation}
+\newline
+
+Each of the planning algorithms presented in this paper (A*, Dijkstra, RRT, \& PRM) was written in the Python programming language following the corresponding algorithms definitions defined above. The code for each of these implementations as well as the planner that implements them are available at the following GitHub repository \url{https://github.com/JonnyD1117/python-path-planners}. While Python is not the most performant language, it is simple to develop in and is interoperable with the Robot Operating System 2 (ROS2) which was a requirement for this planner to integrate with the controller design project.
+
+The only pre-processing applied to the map was a binary inflation layer to mitigate wall hugging and to attempt to keep the vehicle as centered as possible in corridors. Once the planner had computed its solution, it returns a list of waypoints that get post-processed via Bezier path smoothing. This final smoothed path is then sampled into a series of waypoints that get fed into the controller.
+\newline
+\subsubsection{Testing}
+
+The testing methodology is very straightforward. As this problem only requires an offline planner, we were able to run the planner multiple times over the same map and endpoints to develop a statistical sample concerning the computation time, and the cost of the generated path. In this case, the cost of the path is the total distance the generate path before applying path smoothing. 
+\newline
+
+\subsection{Results}
+
+The following table summarizes the performance characteristics over 30 trial runs per algorithm using the same starting and stopping locations.
+
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+% \textbf{Algorithm}&\multicolumn{4}{|c|}{\textbf{Algorithm Performance Stats}} \\
+% \cline{2-5} 
+\textbf{Algorithm}&\multicolumn{2}{|c|}{\textbf{Compute Time [Seconds]}}&\multicolumn{2}{|c|}{\textbf{Path Cost [Meters]}} \\
+ \cline{2-5} 
+
+ & \textbf{\textit{Mean}}& \textbf{\textit{Std. Dev}}& \textbf{\textit{Mean }} & \textbf{\textif{Std. Dev}} \\
+\hline
+A*& 0.173 & .004 & 16.115 & 0\\
+\hline
+Dijkstra& 7.036 & .298 & 16.115 & 0 \\
+\hline
+PRM& .480 & 0.018 & 16.816 & 0.171 \\
+\hline 
+RRT& 8.385 & 6.984 & 396.233 & 14.045 \\
+\hline
+\end{tabular}
+\label{tab1}
+\caption{Algorithm Performance Statistics}
+\end{center}
+\end{table}

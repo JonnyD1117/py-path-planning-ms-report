@@ -1,8 +1,17 @@
 \section{Future Recommendations}
 
-\begin{itemize}
-  \item Gradient-based grid map cell weighting(prevent wall hugging)
-  \item Global and Local planners (would be alot better if you did)
-  \item Inflation relaxation to try and find feasible path if initial parameterization is infeasible.
-  \item Curvature or constraint based path smoothing
-\end{itemize}
+\subsection{Model-based Path Planning/Smoothing}
+
+One of the drawbacks unique to the planners presented in this paper, is the inability to incorporate any form of model into the solution process. The graph-based methods previously discussed construct a graph-like data structure without concern for the system that will be using the generated path. While this methodology is simple, efficient, and useful in a broad range of planning applications, it is sometimes desirable to leverage information about the system during the solution process. 
+
+This can be done for a variety of reasons; however, the inclusion of a system model typically allows for more efficient implementations that target the model structure or permits the use of model driven constraints to guarantee certain criteria are never violated or that certain performance targets are always achievable. A possible avenue of future work would be to explore different model driven planning algorithms that use explicit vehicle model, to maintain feasibility or make guarantees about system performance.
+
+\subsection{Cost Map Planning} 
+
+Throughout the implementation and testing of the planners in this paper, one of the most frustrating limitations was the absence of a global cost map. As implemented, grid maps are effectively a binary mapping of free or occupied cells. In theory, this information is sufficient to plan a path but in practice it is limiting, cumbersome, and does not permit more nuanced behavior. While a binary inflation layer can crudely be used to prevent wall hugging and other similar edge cases, a better solution would be the inclusion of a global cost map. 
+
+Such a cost map is effectively a grid map where the each cell is assigned a weighted between $[0, 1]$. These weights supplement the obstacle map and function as "soft" constraints that incentivize (but do not force) the planner to avoid regions of the cost map that have been weighted higher. Since most path planners are attempting to minimize the cost of their generated path, including the cost map in these calculations will make a planner prefer regions of lower cost even if they are not physically the shortest path to the goal. This concept is particularly useful for avoiding wall hugging and guiding a vehicle through the center of doorways or corridors and future work would benefit from its flexibility by its inclusion. 
+
+\subsection{Local Planning}
+
+The final recommendation for future work concerns the fundamental limitations by solely utilizing global planners. As alluded to throughout this paper, the assumption of global information restricts the ability for these planners to be used in dynamic or uncertain environments where the global information contained in the map might no longer be valid. By processing local sensor/vehicle data at runtime, local planning algorithms could be used to account for dynamic obstacles and mapping uncertainty making the planner significantly more robust and useful in a wider range of applications. 

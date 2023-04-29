@@ -1,13 +1,26 @@
 \section{The Path Planning Problem} 
+The general path planning problem focuses around the task of generating a feasible and traversable sequence of waypoints (aka a path) between a starting position and a target destination. The creation of this path is possibly subject to finite compute resources, a cost-function, and/or a set of system constraints. Additionally, in its' most general form, path planning allows for the inclusion of dynamics obstacles, in the environment. 
 
-As it applies to mobile robotics, the path planning problem can be stated as, the task of generating a feasibly traversable sequence of waypoints (aka a path) between a starting position and a target destination. The creation of this path is possibly subject to finite compute resources, a cost-function, and/or a set of system constraints. Additionally, in its' most general form, path planning allows for the inclusion of dynamics obstacles, in the environment. 
+It should be immediately obvious that this definition describes a very broad class of physical environments, algorithms, and path generation criteria. However, with the inclusion of a few notable exceptions, most path planners that are described by the previous definition will require a solution that plans in realtime, to handle the dynamic elements within an environment. This is not always desirable, reasonable, or even realizable. Depending on the intended function and computational resources available, these assumptions often need to be relaxed and simplified to obtain a viable solution
 
-It should be immediately obvious that this definition describes a very broad class of physical environments, possible algorithms, and path generation criteria. However, with the inclusion of a few notable exceptions, most path planners that are described by the previous definition will require a solution that plans in realtime, to handle the dynamic elements within an environment. This is not always desirable, reasonable, or even realizable. Depending on the intended function and computational resources available, these assumptions often need to be relaxed and simplified to reach a feasible solution
+\subsection{Path Planning in Mobile Robotics}
+Path planning is a broad field possessing numerous applications from video games, to autonomous vehicles, to control of robotic manipulators performing complex tasks. While the general premise of generating a path between two configurations is the same, these applications frequently have extremely different limitations, constraints, and performance requirements even though the underlying theory transcends the specifics of the application.
+
+As the intended application of this paper is to apply path planning techniques to realworld autonomous vehicles it is important to understand the limitations, criteria, and specifications that this application usually demands. The following is a list of a few of the most common constraints.
+
+
+\begin{enumerate}
+    \item Real-time performance 
+    \item High bandwidth sensor inputs (e.g. Lidars \& Cameras)
+    \item Obstacle avoidance 
+    \item Limited onboard computation
+    \item Dynamic/Uncertain environments
+    \item Needs to both localize within and map its environment.
+\end{enumerate}
+
 
 \subsection{Offline Planning for Static Environments}
 
-One of the most common simplifying assumptions, within the domain of path planning, is to assume that the world the mobile robot is operating within is completely static. Frequently, this assumption is sufficient to model large complex environment. This not only permits a class of faster and less resource intensive planning algorithms, but also provides a simple and reliable foundational layer that obstacle detection and avoidance algorithms can build on to handle dynamic elements in a local (instead of a global) sense, allowing simple programs to build complex behaviors together in a modular fashion instead of building large monolithic solutions. 
+By far, the most common simplifying assumption applied to path planning is to assume that the world the mobile robot is operating within is completely static. This implies that so long as the map the vehicle is using to plan is correct and a feasible path exists, planning can be done offline since the environment is assumed to be time invariant. This assumption possesses several attractive properties concerning both planning formulation as well as the planner implementation and performance.
 
-Additionally, static planners are frequently utilized to quantify the statistical performance of an algorithm or to understand the limitations that could arise from the application of planning in real-world edge conditions. 
-
-As the objective of this paper is to present and compare a handful of fundamental path planning algorithms, the rest of this paper makes the assumption that path planning is occurring in a static environment.
+From the perspective of formulating the planning problem, this assumption significantly reduces the scope and complexity by removing all mapping and environmental uncertainty at runtime. By eliminating the need to handle dynamic obstacles or mapping uncertainty, this assumption lets roboticists get to the heart of the planning problem at a fundamental level, and to explore the theory of planning a path from point "a" to point "b", without the messy engineering details of that crop up in practice. As the objective of this paper is to present and compare a handful of fundamental path planning algorithms, the rest of this paper makes the assumption that path planning is occurring in a static environment.
