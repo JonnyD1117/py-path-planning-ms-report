@@ -1,8 +1,8 @@
 \section{Path Planning}
 
-In the domain of robotics, there are hundreds if not thousands of different path planning implementations some of which present totally new formulations for planning but most present incremental improvements that decrease the computational resources, or optimize some custome metric. The goal of this paper is to present a handful of the most popular (and historically important) path planners that have made a significant impact in robotics and have become defacto standard benchmarks against which all other planning algorithms compare their performance. 
+In the domain of robotics, there are hundreds if not thousands of different path planning implementations some of which present totally new formulations for planning but most present incremental improvements that decrease the computational resources, or optimize some custom metric. The goal of this paper is to present a handful of the most popular (and historically important) path planners that have made a significant impact in robotics and have become defacto standard benchmarks against which all other planning algorithms compare their performance. 
 
-This paper will cover A*, RRT, PRM, and Dijkstra's Shortest Path. Each of these algorithms is graph-based in so much as they utilize a graph or tree as the data structure from which the algorithm will attempt to generate the shortest path. While algorithms like A* and Dijkstra typically can be given a preexisting graph to traverse, algorithms like RRT and PRM implement a type of Monte Carlo random sampling to generate the graph/tree that they traverse, later after the path generation phase of the planner.  This section will cover each of the aforementioned algorithms in broad strokes, describing the general construction and planning mechanism(s) at play.
+This paper will cover A*, RRT, PRM, and Dijkstra's Shortest Path. Each of these algorithms is graph-based in so much as they utilize a graph or tree as the data structure from which the algorithm will attempt to generate the shortest path. While algorithms like A* and Dijkstra typically can be given a preexisting graph to traverse, algorithms like RRT and PRM implement a type of Monte Carlo random sampling to generate the graph/tree that they traverse, later after the path generation phase of the planner. This section will cover each of the aforementioned algorithms in broad strokes, describing the general construction and planning mechanism(s) at play.
 
 \subsection{Global vs Local Planners}
 
@@ -19,23 +19,25 @@ Motion planning, on the other hand, uses path planning as an input to determine 
 
 \subsection{Planning Algorithms}
 
-The first category of planning algorithms are so-called \textbf{Graph-Search}. The primary mechanism these planners employ is to construct a graph from a map. Once this has been achieved, different algorithms, heuristics, and operations can be applied to the graph to endeavor to find the shortest path between two nodes that exist in that graph. Occupancy grid maps are ideal for the such path planners in that it is trivial to translate the grid map into a graph data structure by assuming that every pixel in the grid map is node in the graph, and then formulate the connectivity rules as desired (see \textbf{connected-4} or \textbf{connected-8} above). 
+The first category of planning algorithms are so-called \textbf{Graph-Search}. The primary mechanism these planners employ is to construct a graph from a map. Once this has been achieved, different algorithms, heuristics, and operations can be applied over the graph to endeavor to find the shortest path between two nodes that exist in that graph. Occupancy grid maps are ideal for the such path planners in that it is trivial to translate the grid map into a graph data structure by assuming that every pixel in the grid map is node in the graph, and then formulate the connectivity rules as desired (see \textbf{connected-4} or \textbf{connected-8} above). 
 
 \subsubsection{Dijstra's Shortest Path}
-The predecessor of almost all graph-search planners is Dijkstra's shortest path. This algorithm was invented by Dutch mathematician Edsger Dijkstra in Norway in 1956. It implements a type of breadth-first search that will traverse an undirected graph, until it has found the shortest route between two nodes within the graph. 
+The predecessor of almost all graph-search planners is Dijkstra's shortest path. This algorithm was invented by Dutch mathematician Edsger Dijkstra in Norway in 1956 \cite{dijkstra1959note}. It implements a type of breadth-first search that will traverse an undirected graph, until it has found the shortest route between two nodes within the graph. 
 
 The implementation found in this paper for Dijkstra's algorithm uses an occupancy grid map to generate a dense graph. Cells in the map that have an occupancy value over a certain threshold are assumed to be occupied. The algorithm works by computing the cost of the current node, and then determining the total cost of each neighbor from the current node. The neighbor with the least cost is expanded in the same way until either the entire graph has been explored or the path from the start and end nodes has been determined. See algorithm for more details.
+
+\input{src/algorithms/dijkstra.tex}
 
 While this algorithm is simple and guaranteed to find the shortest path in the graph, assuming it exists, it cannot predict the efficiency of how well it is at finding the shortest path. This is predominately attributable to the fact that the algorithm is a generalization of a breadth-first search, blindly expanding every node closest to it without any concern to focus the direction of the search towards more likely paths (e.g. in the direction of the goal state).
 
 % \includegraphics[scale=.3]{dijkstra.png}
 
 % \subsection{Dijkstra Shortest Path}
-\input{src/algorithms/dijkstra.tex}
 
 
 
-\begin{figure}[h!]
+
+\begin{figure}[h]
     \includegraphics[width=8cm]{dijkstra}
     \centering
     \label{fig:Dijkstra}
@@ -45,7 +47,7 @@ While this algorithm is simple and guaranteed to find the shortest path in the g
 
 \subsubsection{A*}
 
-The A* algorithm was developed at the Stanford Research Institute in 1968, for the historically significant robot Shakey, being used in some of the earliest pioneering research into mobile robotics. It is both the literal and conceptual successor to Dijkstra's algorithm. Both implement a graph-search; however, the primary improvement of A* is the addition of a heuristic that improves the ability of the search algorithm to focus on expanding nodes in the direction of the goal state.  
+The A* algorithm was developed at the Stanford Research Institute in 1968, for the historically significant robot Shakey, being used in some of the earliest pioneering research into mobile robotics \cite{Hart1968}. It is both the literal and conceptual successor to Dijkstra's algorithm. Both implement a graph-search; however, the primary improvement of A* is the addition of a search heuristic that improves the ability of the algorithm to focus on expanding nodes in the direction of the goal state.  
 
 Unlike Dijkstra's algorithm, the addition of a heuristic provides the planner with the ability to preferentially search in a given direction and will traverse nodes that are more likely to be approaching the goal node fom the starting node. So long as the heuristic is quick to compute and admissible (an exact or under estimate of the actual distance to the goal node), we can use a search heuristic to drastically improve the planners convergence rate.
 
@@ -53,11 +55,11 @@ A* is extremely similar to Dijkstra's algorithm described above. The key differe
 
 \input{src/algorithms/a_star.tex}
 
-A* has made a tremendous impact on the world of robotics and is today the defacto standard for simple path planning tasks. Unfortunately, both A* and Dijkstra suffer from the necessity to generate a graph of the environment. As previously mentioned, this usually involves the conversion of a grid map into graph. While not always an issue, the dimension of the grid map corresponds to the need to generate a larger search graph, which requires either algorithm to spend more time to compute the shortest path. Unlike Dijkstra's, the heuristic driven nature of A* also means that it is typically far more efficient of a search than Dijkstra's algorithm over the same search graph. 
+A* has made a tremendous impact on the world of robotics and today is the defacto standard for simple path planning tasks. Unfortunately, both A* and Dijkstra suffer from the necessity to generate a graph of the environment. As previously mentioned, this usually involves the conversion of a grid map into graph. While not always an issue, the dimension of the grid map corresponds to the need to generate a larger search graph, which requires either algorithm to spend more time to compute the shortest path. Unlike Dijkstra's, the heuristic driven nature of A* also means that it is typically far more efficient of a search than Dijkstra's algorithm over the same search graph. 
 
 % \includegraphics[scale=.3]{astar.png}
 
-\begin{figure}[h!]
+\begin{figure}[h]
     \includegraphics[width=8cm]{astar}
     \centering
     \label{fig:Astar}
@@ -66,13 +68,13 @@ A* has made a tremendous impact on the world of robotics and is today the defact
 
 \subsubsection{Probabilistic Road Maps}
 
-While graph-search planners have been popular and practical historically, these methods like Dijkstra's and A* can only be as efficient as the size, resolution, and connectivity of their graph permits. Depending on how these graphs were generated, they often suffer from the inability to efficiently scale as the size of a given map increases, leading to unacceptable latency and computation times, known as the curse of dimensionality.
+While graph-search planners have been popular and practical historically, methods like Dijkstra's and A* can only be as efficient as the size, resolution, and connectivity of their graph permits. Depending on how these graphs were generated, they often suffer from the inability to efficiently scale as the size of a given map increases, leading to unacceptable latency and computation times, known as the curse of dimensionality.
 
-To address the problem of high graph densities, the algorithm Probabilistic Road Maps (PRM) was developed. PRM has two main stages; graph creation via random sampling, and path computation by directly applying Dijkstra's algorithm. The broad objective of PRM is to decrease the density of the search-graph by applying uniform sampling as the mechanism for generating graph nodes within the map. The compromise this method makes is the reduction of graph generation and graph traversal times in exchange for a lower fidelity map that is no longer pixel accurate to the map.
+To address the problem of high graph densities, the algorithm Probabilistic Road Maps (PRM) was developed. PRM has two main stages; graph creation via random sampling, and path computation by directly applying Dijkstra's algorithm. The broad objective of PRM is to decrease the density of the search-graph by applying uniform sampling as the mechanism for generating graph nodes within the map \cite{PRM}. The compromise this method makes is the reduction of graph generation and graph traversal times in exchange for a lower fidelity map that is no longer pixel accurate to the map.
 
-PRM works by randomly selecting a number of points within the domain of the map. It will first check whether or not the randomly selected point is an obstacle. If the sample is contained within an obstacle, the algorithm will redraw random samples until it finds a point that is \textit{free}. This point is then added to an every growing graph, so long as the edge connecting this new node and the previous nodes in the graph do not intersect obstacles. Once this has been performed for a sufficient number of random samples, the graph or 'roadmap' now exists. The second phase of the algorithm merely selects a starting and target nodes, in the graph and applying a graph-search algorithm between those two endpoints.
+PRM works by randomly selecting a number of points within the domain of the map. It will first check whether or not the randomly selected point is an obstacle. If the sample is contained within an obstacle, the algorithm will redraw random samples until it finds a point that is \textit{free}. This point is then added to an ever growing graph, so long as the edge connecting this new node and the previous nodes in the graph do not intersect obstacles. Once this has been performed for a sufficient number of random samples, the graph or 'roadmap' now exists. The second phase of the algorithm merely selects a starting and target nodes, in the graph and applies a graph-search algorithm between those two endpoints.
 
-This technique is not only faster for the graph generation portion of the algorithm, but since the graph is generates is typically over an order of magnitude less dense than an equivalent grid map based graph, finding the shortest path between two points on this "sampled" graph results in significantly faster graph traversal. It should be noted that unlike the other methods, PRM is only optimal within the limit as the number of samples becomes infinite. This means that unlike A* traversing a dense grid-based graph, PRM with a finite sample size is unlikely to find the optimally shortest path; however it does provide a locally optimal path across its sampled-graph. This behavior demonstrates how PRM needs to be tuned to its targeted application for effective results.  
+This technique is not only faster for the graph generation portion of the algorithm, but since the graph it generates is typically over an order of magnitude less dense than an equivalent grid map based graph, finding the shortest path between two points on this "sampled" graph results in significantly faster graph traversal. It should be noted that unlike the other methods, PRM is only optimal within the limit as the number of samples becomes infinite. This means that unlike A* traversing a dense grid-based graph, PRM with a finite sample size is unlikely to find the optimally shortest path; however it does provide a locally optimal path across its sampled-graph. This behavior demonstrates how PRM needs to be tuned to its targeted application for effective results.  
 
 \input{src/algorithms/prm.tex}
 
@@ -86,11 +88,11 @@ This technique is not only faster for the graph generation portion of the algori
 
 \subsubsection{Rapidly Exploring Random Trees}
 
-Similar to PRM, Rapidly Exploring Random Trees (RRT), also attempts to leverage random sampling to improve the sample efficiently and reduce the graph generation time. The primary difference between PRM and RRT is their data structures and how additional nodes are inserted into this data structure. While PRM utilizes a graph, the RRT class of algorithms use a tree structure. Tree structures possess several benefits but also impose several constraints on the representation of the map that these algorithms generate. 
+Similar to PRM, Rapidly Exploring Random Trees (RRT), also attempts to leverage random sampling to improve the sample efficiently and reduce the graph generation time \cite{LaValle1998RapidlyexploringRT}. The primary difference between PRM and RRT is their data structures and how additional nodes are inserted into this data structure. While PRM utilizes a graph, the RRT class of algorithms use a tree structure. Tree structures possess several benefits but also impose several constraints on the representation of the map that these algorithms generate. 
 
 The most useful aspect of using a tree is the simplicity in determining the final path. Unlike all of the graph-based methods that require iteratively searching over a large portion of nodes in the graph to determine the shortest path, a tree structure is a very simple structure that lends itself to recursive solutions. Since unlike a node in a graph, a node in a tree can only possess one predecessor, one need only begin at the final target node and recursively make a list of each predecessor node, until the starting node is reached.
 
-Like PRM, RRT will randomly sample its map, check that these random points are not obstacles in the map (resample if true) and then create a tree by tieing that random point into the near node of the tree, by taking a step of size $\DeltaS$ towards the random point, from its closest node on tree. At this new location, it will create a new node that is parented to the nearest neighbor previously mentioned. 
+Like PRM, RRT will randomly sample its map, check that these random points are not obstacles in the map (resample if true) and then create a tree by tieing that random point into the nearest node of the tree, by taking a step of size $\DeltaS$ towards the random point, from its closest node on tree. At this new location, it will create a new node that is parented to the nearest neighbor previously mentioned. 
 
 
 % Similar to PRM, RRT is not guaranteed to find the shortest path between two nodes even in the limit as the number of samples trends towards infinitely sample the map. Unlike PRThis is due to the static nature of the tree generation. 

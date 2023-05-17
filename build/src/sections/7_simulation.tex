@@ -5,7 +5,9 @@ Since the intended application for the planners covered in this paper are for us
 \subsection{Scenario}
 The scenario we will use is taken from a concurrent research project within our lab to quantify the differences in performance between several control schemes that require an autonomous vehicle to navigate through a non-trivial environment. Since the objective of that project is to compare the relative performance between different controllers over the same path, this scenario only requires a static environment to ensure continuity between test runs using the different controllers and is the perfect candidate for testing the planners discussed above.
 
-Unlike testing a control system, testing offline path planners can be done completely in simulation under the assumption that the input map is accurate. To ensure this, the map being fed into the planner in this implementation has been generated directly from the autonomous vehicle after SLAMing its environment. This will provide a one to one test of how these planners would have performed on the actual vehicle. The objective of this testing is to assess the  generated path distance and the time required to compute a full path, as these are both important real world metrics for a planners usability.
+Unlike testing a control system, testing offline path planners can be done completely in simulation under the assumption that the input map is accurate. To ensure this, the map being fed into the planner in this implementation has been generated directly from the autonomous vehicle after SLAMing its environment. This will provide a one to one test of how these planners would have performed on the actual vehicle. This leads to a discussion about which metrics are appropriate markers for comparative performance between planners. 
+
+In this scenario, the objective of the planner is to provide the shortest feasible path to the controller as quickly as possible. The goal of the shortest path is to guarantee an efficient traversal of the environment and low compute times are a strong indictor of computational efficiency, both of which are frequently desirable in mobile robotic applications with limited onboard computational resources. While it is possible to select other path cost functions (such as energy minimization or handling characteristics ...etc), choosing the path cost function to be the total path distance is a simple, quick to compute, and intuitive performance metric that is directly measurable from the output of the planner. This being said, this does come at the cost of being generally less flexibility than other cost functions; however, given this scenario, the path distance is more than sufficient for providing relative performance across all planners solving for the same inputs.  
 
 \subsection{Setup \& Testing}
 
@@ -21,7 +23,7 @@ The only pre-processing applied to the map was a binary inflation layer to mitig
 \newline
 \subsubsection{Testing}
 
-The testing methodology is very straightforward. As this problem only requires an offline planner, we were able to run the planner multiple times over the same map and endpoints to develop a statistical sample concerning the computation time, and the cost of the generated path. In this case, the cost of the path is the total distance the generate path before applying path smoothing. 
+The testing methodology is very straightforward. As this problem only requires an offline planner, we were able to run the planner multiple times over the same map and endpoints to develop a statistical sample concerning the computation time, and the cost of the generated path. In this case, the cost of the path is the total distance of the generate path before applying path smoothing. 
 \newline
 
 \subsection{Results}
